@@ -72,7 +72,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 ```bash
 git clone https://github.com/BurningHat20/YT-links-manager.git
-cd youtube-manager
+cd YT-links-manager
 ```
 
 2. Install dependencies:
