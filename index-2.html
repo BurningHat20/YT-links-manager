@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Link Extractor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #ff0000;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #ff0000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            flex: 1;
+        }
+
+        button:hover {
+            background-color: #cc0000;
+        }
+
+        button#saveButton {
+            background-color: #28a745;
+        }
+
+        button#saveButton:hover {
+            background-color: #218838;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        #results {
+            margin-top: 20px;
+        }
+
+        .link-card {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+
+        .link-card a {
+            color: #0066cc;
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .link-card a:hover {
+            text-decoration: underline;
+        }
+
+        .no-links {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+
+        .status-message {
+            text-align: center;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .status-message.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>YouTube Link Extractor</h1>
+
+        <textarea id="inputText" placeholder="Paste your text containing YouTube links here..."></textarea>
+
+        <div class="button-group">
+            <button onclick="extractLinks()">Extract YouTube Links</button>
+            <button id="saveButton" onclick="saveToFile()" disabled>Save Links to File</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        let extractedLinks = [];
+
+        function extractLinks() {
+            const text = document.getElementById('inputText').value;
+            const resultsDiv = document.getElementById('results');
+            const saveButton = document.getElementById('saveButton');
+
+            // Regular expression to match YouTube links
+            const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]+)(?:\S+)?/g;
+
+            // Find all matches
+            const matches = [...text.matchAll(youtubeRegex)];
+            extractedLinks = matches.map(match => match[0]);
+
+            if (matches.length > 0) {
+                // Clear previous results
+                resultsDiv.innerHTML = '<h2>Found Links:</h2>';
+
+                // Create a card for each link
+                matches.forEach((match, index) => {
+                    const link = match[0];
+                    const videoId = match[1];
+
+                    const card = document.createElement('div');
+                    card.className = 'link-card';
+
+                    const anchor = document.createElement('a');
+                    anchor.href = link;
+                    anchor.target = '_blank';
+                    anchor.textContent = link;
+
+                    card.appendChild(anchor);
+                    resultsDiv.appendChild(card);
+                });
+
+                // Enable save button
+                saveButton.disabled = false;
+            } else {
+                resultsDiv.innerHTML = '<p class="no-links">No YouTube links found in the text.</p>';
+                // Disable save button
+                saveButton.disabled = true;
+            }
+        }
+
+        function saveToFile() {
+            if (extractedLinks.length === 0) {
+                showStatus('No links to save!', false);
+                return;
+            }
+
+            // Create the content with one link per line
+            const content = extractedLinks.join('\n');
+
+            // Create a Blob with the content
+            const blob = new Blob([content], { type: 'text/plain' });
+
+            // Create a download link
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'youtube_links.txt';
+
+            // Trigger the download
+            document.body.appendChild(a);
+            a.click();
+
+            // Cleanup
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+
+            showStatus('Links saved successfully!', true);
+        }
+
+        function showStatus(message, isSuccess) {
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status-message ${isSuccess ? 'success' : 'error'}`;
+            statusDiv.textContent = message;
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.insertAdjacentElement('afterbegin', statusDiv);
+
+            // Remove the status message after 3 seconds
+            setTimeout(() => {
+                statusDiv.remove();
+            }, 3000);
+        }
+
+        // Add event listener for textarea to handle paste events
+        document.getElementById('inputText').addEventListener('paste', (e) => {
+            // Small delay to let the paste complete
+            setTimeout(extractLinks, 100);
+        });
+    </script>
+</body>
+
+</html>
