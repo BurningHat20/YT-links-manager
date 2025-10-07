@@ -260,6 +260,7 @@ const App = () => {
                 content: prompt,
               },
             ],
+            // changed model from llama 3 8b to gpt-oss-20b
             model: "openai/gpt-oss-20b",
             temperature: 0.3,
             response_format: { type: "json_object" },
